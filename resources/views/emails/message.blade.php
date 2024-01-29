@@ -1,22 +1,12 @@
 <x-mail::message>
-# Olá, tudo bem?
+# Introduction
 
-Se você esta recebendo este email, <b>significa que:</b>
-
-você quer ser um dos beta testers que testará nossa aplicação.
-
-Muito simples, basta clicar no link abaixo e preencher o formulário.
+The body of your message.
 
 <x-mail::button :url="''">
-ACESSAR FORMULÁRIO.
+Button Text
 </x-mail::button>
 
-Caso o seu acesso seja aprovado,
-você receberá um link para acessar nosso sistema.
-
-Obrigado, e até mais!
-
-<br>
-
+Thanks,<br>
 {{ config('app.name') }}
 </x-mail::message>

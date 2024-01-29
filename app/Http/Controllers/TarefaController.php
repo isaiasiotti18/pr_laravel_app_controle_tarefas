@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NovaTarefa;
 use App\Models\Tarefa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class TarefaController extends Controller
 {
@@ -18,7 +20,15 @@ class TarefaController extends Controller
 
   public function index()
   {
-    //
+
+    $user_id = auth()->user()->id;
+
+    $tarefas = Tarefa::where('user_id', $user_id)
+      ->get();
+
+    return view('tarefa.index', [
+      "tarefas" => $tarefas
+    ]);
   }
 
   /**
@@ -26,7 +36,7 @@ class TarefaController extends Controller
    */
   public function create()
   {
-    //
+    return view('tarefa.create');
   }
 
   /**
@@ -34,7 +44,21 @@ class TarefaController extends Controller
    */
   public function store(Request $request)
   {
-    //
+
+    $user = auth()->user();
+
+    $tarefaDados = array_merge(
+      $request->only("tarefa", "data_limite"),
+      ["user_id" => $user->id]
+    );
+
+    $tarefa = Tarefa::create($tarefaDados);
+
+    Mail::to($user->email)->send(new NovaTarefa($tarefa));
+
+    return to_route('tarefa.show', [
+      "tarefa" => $tarefa
+    ]);
   }
 
   /**
@@ -42,7 +66,9 @@ class TarefaController extends Controller
    */
   public function show(Tarefa $tarefa)
   {
-    //
+    return view('tarefa.show', [
+      "tarefa" => $tarefa
+    ]);
   }
 
   /**
