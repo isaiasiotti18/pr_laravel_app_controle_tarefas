@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\NovaTarefa;
 use App\Models\Tarefa;
+use App\Mail\NovaTarefa;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use App\Exports\TarefaExport;
 use Illuminate\Support\Facades\Mail;
+use Maatwebsite\Excel\Facades\Excel as Exc;
 
 class TarefaController extends Controller
 {
@@ -24,7 +27,7 @@ class TarefaController extends Controller
     $user_id = auth()->user()->id;
 
     $tarefas = Tarefa::where('user_id', $user_id)
-      ->get();
+      ->paginate(5);
 
     return view('tarefa.index', [
       "tarefas" => $tarefas
@@ -76,7 +79,9 @@ class TarefaController extends Controller
    */
   public function edit(Tarefa $tarefa)
   {
-    //
+    return view('tarefa.edit', [
+      "tarefa" => $tarefa
+    ]);
   }
 
   /**
@@ -84,7 +89,13 @@ class TarefaController extends Controller
    */
   public function update(Request $request, Tarefa $tarefa)
   {
-    //
+    $user_id = auth()->user()->id;
+
+    Tarefa::where('user_id', $user_id)
+      ->where('id', $tarefa->id)
+      ->update($request->only('tarefa', 'data_limite'));
+
+    return to_route('tarefa.show', $tarefa->id);
   }
 
   /**
@@ -92,6 +103,36 @@ class TarefaController extends Controller
    */
   public function destroy(Tarefa $tarefa)
   {
-    //
+    $user_id = auth()->user()->id;
+
+    Tarefa::where('user_id', $user_id)
+      ->where('id', $tarefa->id)
+      ->delete();
+
+    return to_route('tarefa.index')->with('success', 'Tarefa excluida.');
+  }
+
+  public function export($extensao) {
+    $now = time();
+    if(in_array($extensao, ['xlsx', 'csv', 'pdf'])) {
+      return Exc::download(new TarefaExport(), "lista_tarefas_$now.$extensao");
+
+    }
+
+    return redirect()->route('tarefa.index');
+  }
+
+  public function exportPDF() {
+    $now = time();
+
+    $tarefas = auth()->user()->tarefas()->get();
+
+    $pdf = PDF::loadView('tarefa.pdf', [
+      "tarefas" => $tarefas
+    ]);
+
+    $pdf->setPaper('a4', 'landscape');
+
+    return $pdf->stream("lista_tarefas_$now.pdf");
   }
 }

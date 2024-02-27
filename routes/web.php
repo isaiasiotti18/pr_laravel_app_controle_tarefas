@@ -25,9 +25,10 @@ Route::get('/', function () {
 Auth::routes(['verify' => true]);
 
 Route::prefix('/')->group(function () {
-  Route::middleware('verified')
-    ->get('/home', [HomeController::class, 'index'])
-    ->name('home');
+
+  Route::get('tarefa/export/{extensao}', [TarefaController::class, 'export'])->name('tarefa.export');
+
+  Route::get('tarefa/exportPDF', [TarefaController::class, 'exportPDF'])->name('tarefa.exportPDF');
 
   Route::resource('tarefa', TarefaController::class);
 
